@@ -6,16 +6,19 @@
 /*   By: junpark <junpark@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/07/02 02:23:11 by junpark           #+#    #+#             */
-/*   Updated: 2019/10/01 07:11:57 by junpark          ###   ########.fr       */
+/*   Updated: 2019/10/03 04:34:05 by junpark          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef FT_SSL_H
 # define FT_SSL_H
 
+# include <stdio.h>
 # include <fcntl.h>
 # include "ft_printf/ft_printf.h"
 # include "ft_printf/libft.h"
+
+# define RIGHT_ROTATE_64BIT(n, d) ((n >> d) | (n << (64 - d)))
 
 typedef struct	s_ssl_flag
 {
@@ -77,29 +80,53 @@ typedef struct	s_sha
 	unsigned int	mem[64];
 }				t_sha;
 
+typedef struct	s_sha5
+{
+	uint64_t		hash[8];
+	uint64_t		a;
+	uint64_t		b;
+	uint64_t		c;
+	uint64_t		d;
+	uint64_t		e;
+	uint64_t		f;
+	uint64_t		g;
+	uint64_t		h;
+	uint64_t		set;
+	unsigned char	*msg;
+	uint64_t		mem[80];
+}				t_sha5;
+
 void			handle_flag(char *str, t_ssl *ssl);
 int				get_command(char *av);
 
 void			handle_data(int ac, t_ssl *ssl);
 void			read_param(char **av, int i, t_ssl *ssl);
-void			read_file(int fd, char **av, int i, t_ssl *ssl);
-void			read_file_sub1(char **av, int i, char *tmp, t_ssl *ssl);
+void			read_file(int fd, char *file, t_ssl *ssl);
+int				file_reader(int fd, char **file);
+char			*str_add(char const *s1, char const *s2, char *c);
 void			handle_input(int i, int ac, char **av, t_ssl *ssl);
-
-void			md5_dpt(char *str);
-void			sha256_dpt(char *str);
 
 void			rev_bits(unsigned int *c);
 unsigned int	left_rotate(unsigned int x, unsigned int c);
 unsigned int	right_rotate(unsigned int x, unsigned int c);
 
+int				reader(int fd, char **file);
+char			*str_add(char const *s1, char const *s2, char *c);
+
+void			md5_dpt(char *str);
+void			sha256_dpt(char *str);
+void			sha224_dpt(char *str);
+void			sha512_dpt(char *str);
+void			sha384_dpt(char *str);
+
 static t_dp ssl_dpt[] =
 {
 	{"md5", md5_dpt},
 	{"sha256", sha256_dpt},
-	// {"sha512", sha512_dpt},
-	// {"sha384", sha384_dpt},
-	// {"sha224", sha224_dpt},
+	{"sha224", sha224_dpt},
+	{"sha512", sha512_dpt},
+	{"sha384", sha384_dpt},
+	{NULL, NULL}
 };
 
 #endif

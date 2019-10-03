@@ -6,7 +6,7 @@
 /*   By: junpark <junpark@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/07/05 16:11:11 by junpark           #+#    #+#             */
-/*   Updated: 2019/08/29 23:31:43 by junpark          ###   ########.fr       */
+/*   Updated: 2019/10/03 03:33:18 by junpark          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,11 @@
 void	handle_flag(char *str, t_ssl *ssl)
 {
 	int	i;
-	i = 1;
 
+	i = 1;
+	ssl->flag.p = 0;
+	ssl->flag.q = 0;
+	ssl->flag.r = 0;
 	while (str[i] != '\0')
 	{
 		if (str[i] == 'p')
@@ -25,8 +28,6 @@ void	handle_flag(char *str, t_ssl *ssl)
 			ssl->flag.q = 1;
 		else if (str[i] == 'r')
 			ssl->flag.r = 1;
-		else if (str[i] == 's')
-			ssl->flag.s = 1;
 		if (ssl->flag.r && ssl->flag.q)
 			ssl->flag.r = 0;
 		i++;
@@ -69,13 +70,13 @@ int		main(int ac, char **av)
 		exit(0);
 	}
 	ssl.dp = ssl_dpt[get_command(av[1])];
-	ft_bzero(&ssl.flag, sizeof(ssl.flag));
 	i = 2;
-	while (av[i] && (av[i][0] == '-'))
+	while (av[i] && (av[i][0] == '-') && av[i][1] != 's')
 	{
 		handle_flag(av[i], &ssl);
 		i++;
 	}
-	handle_input(i, ac, av, &ssl);
+	if (ssl.dp.command)
+		handle_input(i, ac, av, &ssl);
 	return (0);
 }

@@ -6,13 +6,13 @@
 /*   By: junpark <junpark@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/07/05 16:44:00 by junpark           #+#    #+#             */
-/*   Updated: 2019/10/01 04:29:46 by junpark          ###   ########.fr       */
+/*   Updated: 2019/10/03 01:41:40 by junpark          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_ssl.h"
 
-unsigned int	md5_s[64] =
+unsigned int	g_md5_s[64] =
 {
 	7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
 	5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20,
@@ -20,7 +20,7 @@ unsigned int	md5_s[64] =
 	6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21
 };
 
-unsigned int	md5_k[64] =
+unsigned int	g_md5_k[64] =
 {
 	0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
 	0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
@@ -40,7 +40,7 @@ unsigned int	md5_k[64] =
 	0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391
 };
 
-static void		md5_pad(int i, t_md5 *md5)
+static void		md5_loop(int i, t_md5 *md5)
 {
 	if (0 <= i && i <= 15)
 	{
@@ -62,14 +62,14 @@ static void		md5_pad(int i, t_md5 *md5)
 		md5->f = md5->c ^ (md5->b | (~md5->d));
 		md5->g = (7 * i) % 16;
 	}
-	md5->f = md5->f + md5->a + md5_k[i] + *((unsigned int *)(md5->mem[md5->g]));
+	md5->f = md5->f + md5->a + g_md5_k[i] + *((unsigned int *)(md5->mem[md5->g]));
 	md5->a = md5->d;
 	md5->d = md5->c;
 	md5->c = md5->b;
-	md5->b = md5->b + left_rotate(md5->f, md5_s[i]);
+	md5->b = md5->b + left_rotate(md5->f, g_md5_s[i]);
 }
 
-static void	md5_proc(int set, t_md5 *md)
+static void		md5_proc(int set, t_md5 *md)
 {
 	int i;
 	int j;
@@ -86,19 +86,22 @@ static void	md5_proc(int set, t_md5 *md)
 	md->b = md->B;
 	md->c = md->C;
 	md->d = md->D;
-	i = -1;
-	while (++i < 64)
-		md5_pad(i, md);
+	i = 0;
+	while (i < 64)
+	{
+		md5_loop(i, md);
+		i++;
+	}
 	md->A += md->a;
 	md->B += md->b;
 	md->C += md->c;
 	md->D += md->d;
 }
 
-static void	md5_set(char *s, t_md5 *md)
+static void		md5_pad(char *s, t_md5 *md)
 {
-	int			i;
-	uint64_t	bit_len;
+	int					i;
+	unsigned long long	bit_len;
 
 	md->A = 0x67452301;
 	md->B = 0xefcdab89;
@@ -106,7 +109,7 @@ static void	md5_set(char *s, t_md5 *md)
 	md->D = 0x10325476;
 	bit_len = 0;
 	if (s)
-		md->set = s ? (ft_strlen(s) + 8) / 64 + 1 : 1;
+		md->set = (ft_strlen(s) + 8) / 64 + 1;
 	else
 		md->set = 1;
 	md->str = (unsigned char *)malloc(64 * md->set);
@@ -123,38 +126,13 @@ static void	md5_set(char *s, t_md5 *md)
 		md->str[64 * md->set - 8 + i] = bit_len >> (i * 8);
 }
 
-void	rev_bits(unsigned int *c)
-{
-	unsigned int t;
-
-	t = 0;
-	t += *c & 0xff;
-	t = t << 8;
-	t += (*c >> 8) & 0xff;
-	t = t << 8;
-	t += (*c >> 16) & 0xff;
-	t = t << 8;
-	t += (*c >> 24) & 0xff;
-	*c = t;
-}
-
-unsigned int	left_rotate(unsigned int x, unsigned int c)
-{
-	return ((x << c) | (x >> (32 - c)));
-}
-
-unsigned int	right_rotate(unsigned int x, unsigned int c)
-{
-	return ((x >> c) | (x << (32 - c)));
-}
-
-void		md5_dpt(char *str)
+void			md5_dpt(char *str)
 {
 	t_md5	md5;
 	int		i;
 
 	ft_bzero(&md5, 10);
-	md5_set(str, &md5);
+	md5_pad(str, &md5);
 	i = 0;
 	while (i < (int)(md5.set))
 	{
